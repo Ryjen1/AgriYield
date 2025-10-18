@@ -1,12 +1,14 @@
 import express from "express"
 import cors from "cors"
 import helmet from "helmet"
+import path from "path"
 // import { initializeBlockchain } from "./config/blockchain"
 // import { initializeMagic } from "./config/magic"
 
 // Import routes
 import farmRoutes from "./routes/farm.routes"
 import investmentRoutes from "./routes/investment.routes"
+import harvestRoutes from "./routes/harvest.routes"
 
 
 // (async () => {
@@ -99,9 +101,13 @@ app.get("/api/health", (req, res) => {
   })
 })
 
+// Static file serving for uploads
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")))
+
 // API Routes
 app.use("/api/farms", farmRoutes)
 app.use("/api/investments", investmentRoutes)
+app.use("/api/harvest", harvestRoutes)
 
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error("Error:", err)
