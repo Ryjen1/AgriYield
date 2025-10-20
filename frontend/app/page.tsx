@@ -12,6 +12,7 @@ import { StatsSection } from "@/components/landing/stats-section"
 import { TransactionDemo } from "@/components/demo/transaction-demo"
 import { useAuth } from "@/lib/auth-context"
 
+
 export default function HomePage() {
   const { user, isLoading } = useAuth()
   const router = useRouter()
@@ -25,6 +26,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
+      
       <Navigation />
       <main>
         <HeroSection />

@@ -5,6 +5,7 @@ import { AuthProvider } from "@/lib/auth-context"
 import { ThemeProvider } from "@/components/theme-provider"
 import { ToastProvider } from "@/components/ui/toast"
 import { AuthCallback } from "@/lib/auth-callback"
+import { Providers } from "./providers"
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -40,7 +41,9 @@ export default function RootLayout({
           <ToastProvider>
             <AuthProvider>
             <AuthCallback/>
+              <Providers>
               {children}
+              </Providers>
               </AuthProvider>
           </ToastProvider>
         </ThemeProvider>

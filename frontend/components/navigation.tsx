@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Leaf, Menu, X, Wallet, LogOut, User, Coins } from "lucide-react"
 import { useState } from "react"
 import { WalletConnectModal } from "@/components/wallet/wallet-connect-modal"
@@ -49,7 +50,9 @@ export function Navigation() {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-dark transition-transform group-hover:scale-105">
                 <Leaf className="h-6 w-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-foreground">AgriYield</span>
+              <span className="text-xl font-bold text-foreground">
+                AgriYield
+              </span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -116,7 +119,7 @@ export function Navigation() {
             </div>
 
             <div className="hidden md:flex md:items-center md:gap-3">
-              <ThemeToggle />
+              {/* <ThemeToggle /> */}
 
               {!user ? (
                 // Not signed in - show Sign In and Sign Up
@@ -124,16 +127,18 @@ export function Navigation() {
                   <Button variant="outline" size="sm" asChild>
                     <Link href="/signin">Sign In</Link>
                   </Button>
-                  <Button size="sm" className="gradient-primary text-white" asChild>
+                  <Button
+                    size="sm"
+                    className="gradient-primary text-white"
+                    asChild
+                  >
                     <Link href="/signup">Sign Up</Link>
                   </Button>
+                  <ConnectButton />
                 </>
               ) : !user.walletConnected ? (
                 // Signed in but wallet not connected - show Connect Wallet
-                <Button size="sm" className="gradient-primary text-white" onClick={handleConnectWallet}>
-                  <Wallet className="h-4 w-4 mr-2" />
-                  Connect Wallet
-                </Button>
+                <ConnectButton />
               ) : (
                 // Wallet connected - show AGT balance and user menu
                 <>
@@ -145,8 +150,16 @@ export function Navigation() {
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="flex items-center gap-2 h-auto py-2">
-                        <Badge variant={user.role === "farmer" ? "default" : "secondary"} className="text-xs">
+                      <Button
+                        variant="ghost"
+                        className="flex items-center gap-2 h-auto py-2"
+                      >
+                        <Badge
+                          variant={
+                            user.role === "farmer" ? "default" : "secondary"
+                          }
+                          className="text-xs"
+                        >
                           {user.role === "farmer" ? "Farmer" : "Investor"}
                         </Badge>
                         <Avatar className="h-8 w-8">
@@ -161,19 +174,29 @@ export function Navigation() {
                         <div className="flex flex-col space-y-1">
                           <p className="text-sm font-medium">{user.email}</p>
                           <p className="text-xs text-muted-foreground">
-                            {user.walletAddress?.substring(0, 6)}...{user.walletAddress?.substring(38)}
+                            {user.walletAddress?.substring(0, 6)}...
+                            {user.walletAddress?.substring(38)}
                           </p>
                         </div>
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem asChild>
-                        <Link href={user.role === "farmer" ? "/dashboard/farmer" : "/dashboard/investor"}>
+                        <Link
+                          href={
+                            user.role === "farmer"
+                              ? "/dashboard/farmer"
+                              : "/dashboard/investor"
+                          }
+                        >
                           <User className="mr-2 h-4 w-4" />
                           Dashboard
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={signOut} className="text-red-600 dark:text-red-400">
+                      <DropdownMenuItem
+                        onClick={signOut}
+                        className="text-red-600 dark:text-red-400"
+                      >
                         <LogOut className="mr-2 h-4 w-4" />
                         Sign Out
                       </DropdownMenuItem>
@@ -187,7 +210,11 @@ export function Navigation() {
             <div className="flex md:hidden items-center gap-2">
               <ThemeToggle />
               <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                {mobileMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
               </button>
             </div>
           </div>
@@ -262,18 +289,24 @@ export function Navigation() {
               <div className="flex flex-col gap-2 pt-4">
                 {!user ? (
                   <>
-                    <Button variant="outline" size="sm" className="w-full bg-transparent" asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full bg-transparent"
+                      asChild
+                    >
                       <Link href="/signin">Sign In</Link>
                     </Button>
-                    <Button size="sm" className="w-full gradient-primary text-white" asChild>
+                    <Button
+                      size="sm"
+                      className="w-full gradient-primary text-white"
+                      asChild
+                    >
                       <Link href="/signup">Sign Up</Link>
                     </Button>
                   </>
                 ) : !user.walletConnected ? (
-                  <Button size="sm" className="w-full gradient-primary text-white" onClick={handleConnectWallet}>
-                    <Wallet className="h-4 w-4 mr-2" />
-                    Connect Wallet
-                  </Button>
+                  <ConnectButton />
                 ) : (
                   <>
                     <div className="flex items-center gap-2 p-3 rounded-lg bg-muted">
@@ -283,8 +316,15 @@ export function Navigation() {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{user.email}</p>
-                        <Badge variant={user.role === "farmer" ? "default" : "secondary"} className="text-xs mt-1">
+                        <p className="text-sm font-medium truncate">
+                          {user.email}
+                        </p>
+                        <Badge
+                          variant={
+                            user.role === "farmer" ? "default" : "secondary"
+                          }
+                          className="text-xs mt-1"
+                        >
                           {user.role === "farmer" ? "Farmer" : "Investor"}
                         </Badge>
                       </div>
@@ -312,7 +352,10 @@ export function Navigation() {
         </div>
       </motion.nav>
 
-      <WalletConnectModal isOpen={walletModalOpen} onClose={() => setWalletModalOpen(false)} />
+      <WalletConnectModal
+        isOpen={walletModalOpen}
+        onClose={() => setWalletModalOpen(false)}
+      />
     </>
-  )
+  );
 }

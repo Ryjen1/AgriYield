@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { MapPin, Package, Calendar, ShoppingCart, Award } from "lucide-react"
 import { useState } from "react"
+import { usePurchase } from "@/hooks/usePurchase"
+
 
 interface ProductModalProps {
   product: {
@@ -28,18 +30,29 @@ interface ProductModalProps {
 }
 
 export function ProductModal({ product, onClose }: ProductModalProps) {
-  const [quantity, setQuantity] = useState(1)
-  const [isPurchasing, setIsPurchasing] = useState(false)
 
-  const handlePurchase = () => {
-    setIsPurchasing(true)
-    // Simulate purchase
-    setTimeout(() => {
-      setIsPurchasing(false)
-      alert(`Successfully purchased ${quantity} unit(s) of ${product.name}!`)
-      onClose()
-    }, 2000)
-  }
+  const purchase = usePurchase();
+  
+  const [quantity, setQuantity] = useState(1);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+
+   const handlePurchase = async (): Promise<void> => {
+      if (!quantity) {
+        alert("Please enter a valid amount");
+        return;
+      }
+
+      setIsPurchasing(true);
+      try {
+        await purchase(String(quantity));
+        setQuantity(1);
+      } catch (error) {
+        console.error("Purchase failed:", error);
+      } finally {
+        setIsPurchasing(false);
+      }
+    };
+  
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
