@@ -29,6 +29,15 @@ interface IAgriYield {
         );
 }
 
+enum AgriYieldStatus {
+    Active,
+    Funded,
+    PaidOut,
+    Settled,
+    Closed
+}
+
+
 contract Marketplace is ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -112,12 +121,12 @@ contract Marketplace is ReentrancyGuard {
     event DisputeResolved(uint256 indexed orderId, bool sellerFavor);
     event AdminChanged(address indexed newAdmin);
 
-    constructor(address _stableToken, address _agriYield, address _admin) {
-        require(_stableToken != address(0), "Marketplace: zero token");
+    constructor(address _AGT, address _agriYield, address _admin) {
+        require(_AGT != address(0), "Marketplace: zero token");
         require(_agriYield != address(0), "Marketplace: zero agriYield");
         require(_admin != address(0), "Marketplace: zero admin");
 
-        AGT = IERC20(_stableToken);
+        AGT = IERC20(_AGT);
         agriYield = IAgriYield(_agriYield);
         admin = _admin;
     }
@@ -145,9 +154,12 @@ contract Marketplace is ReentrancyGuard {
         require(quantity > 0, "Marketplace: qty>0");
 
         // Verify the caller is the registered farmer for this farm
-        (address farmer, , , , , , , , , bool verified, uint8 status, , , ) = agriYield.getFarm(farmId);
+       (address farmer, , , , , , , , , bool verified, uint8 status, , , ) = agriYield.getFarm(farmId);
+        AgriYieldStatus farmStatus = AgriYieldStatus(status);
+
         require(verified, "Marketplace: farm not verified");
         require(msg.sender == farmer, "Marketplace: only farm owner");
+        require(farmStatus == AgriYieldStatus.PaidOut, "Marketplace: farm funding not completed");
 
         uint256 listingId = nextListingId++;
         listings[listingId] = Listing({
@@ -212,7 +224,7 @@ contract Marketplace is ReentrancyGuard {
 
         // transfer payment into escrow (this contract)
         AGT.safeTransferFrom(msg.sender, address(this), totalPrice);
-
+     
         l.quantityRemaining -= quantity;
 
         uint256 orderId = nextOrderId++;
