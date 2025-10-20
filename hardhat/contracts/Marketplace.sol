@@ -81,10 +81,15 @@ contract Marketplace is ReentrancyGuard {
     uint256 public nextListingId = 1;
     uint256 public nextOrderId = 1;
     uint256 public constant AUTO_RELEASE_PERIOD = 3 days;
+    
+    address public treasury;
+    uint256 public platformFeeBps = 300; // default 3%
+    uint256 public constant FEE_BASE = 10000;
 
     mapping(uint256 => Listing) public listings;
     mapping(uint256 => Order) public orders;
     mapping(address => uint256[]) public userOrders; // history for users
+
 
     // Events
     event ListingCreated(
@@ -120,15 +125,19 @@ contract Marketplace is ReentrancyGuard {
     event DisputeOpened(uint256 indexed orderId, string reasonCID);
     event DisputeResolved(uint256 indexed orderId, bool sellerFavor);
     event AdminChanged(address indexed newAdmin);
+    event PlatformFeeCollected(address indexed payer, uint256 amount, string source, uint256 indexed id);
 
-    constructor(address _AGT, address _agriYield, address _admin) {
+
+    constructor(address _AGT, address _agriYield, address _admin, address _treasury) {
         require(_AGT != address(0), "Marketplace: zero token");
         require(_agriYield != address(0), "Marketplace: zero agriYield");
         require(_admin != address(0), "Marketplace: zero admin");
+        require(_treasury != address(0), "Marketplace: zero treasury");
 
         AGT = IERC20(_AGT);
         agriYield = IAgriYield(_agriYield);
         admin = _admin;
+        treasury = _treasury;
     }
 
     modifier onlyAdmin() {
@@ -292,9 +301,18 @@ contract Marketplace is ReentrancyGuard {
         require(!o.isDisputed, "Marketplace: disputed");
 
         o.status = OrderStatus.Completed;
-        AGT.safeTransfer(o.seller, o.price);
 
-        emit FundsReleased(orderId, o.seller, o.price);
+        uint256 fee = (o.price * platformFeeBps) / FEE_BASE;
+        uint256 sellerAmount = o.price - fee;
+
+        if (fee > 0) {
+            AGT.safeTransfer(treasury, fee);
+            emit PlatformFeeCollected(address(this), fee, "marketplace", orderId);
+
+        } 
+
+        AGT.safeTransfer(o.seller, sellerAmount);
+        emit FundsReleased(orderId, o.seller, sellerAmount);
     }
 
      /// auto-release to seller if buyer never confirms (seller-protection)
@@ -305,9 +323,17 @@ contract Marketplace is ReentrancyGuard {
         require(!o.isDisputed, "Marketplace: disputed");
 
         o.status = OrderStatus.Completed;
-        AGT.safeTransfer(o.seller, o.price);
 
-        emit FundsReleased(orderId, o.seller, o.price);
+        uint256 fee = (o.price * platformFeeBps) / FEE_BASE;
+        uint256 sellerAmount = o.price - fee;
+
+        if (fee > 0) {
+            AGT.safeTransfer(treasury, fee);
+            emit PlatformFeeCollected(address(this), fee, "marketplace", orderId);
+        }
+
+        AGT.safeTransfer(o.seller, sellerAmount);
+        emit FundsReleased(orderId, o.seller, sellerAmount);
     }
 
     function openDispute(uint256 orderId, string calldata reasonCID) external {
@@ -359,4 +385,15 @@ contract Marketplace is ReentrancyGuard {
     function getUserOrders(address user) external view returns (uint256[] memory) {
         return userOrders[user];
     }
+
+    function setTreasury(address _treasury) external onlyAdmin {
+    require(_treasury != address(0), "zero addr");
+    treasury = _treasury;
+    }
+
+    function setPlatformFeeBps(uint256 _bps) external onlyAdmin {
+        require(_bps <= 1000, "fee too high"); // e.g. cap 10%
+        platformFeeBps = _bps;
+    }
+
 }

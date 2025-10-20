@@ -38,6 +38,9 @@ contract AgriYield is ReentrancyGuard {
     FarmShares public farmShares;
     MockUSDT public AGT;
     address public admin;
+    address public treasury;
+    uint256 public platformFeeBps = 300; // default 3%
+    uint256 public constant FEE_BASE = 10000;
 
     event FarmCreated(uint256 indexed farmId, address indexed farmer);
     event FarmVerified(uint256 indexed farmId);
@@ -64,6 +67,8 @@ contract AgriYield is ReentrancyGuard {
         uint256 amount,
         uint256 roiPercent
     );
+
+    event PlatformFeeCollected(address indexed payer, uint256 amount, string source, uint256 indexed id);
 
     modifier onlyAdmin() {
         require(msg.sender == admin, "AgriYield: only admin");
@@ -102,6 +107,7 @@ contract AgriYield is ReentrancyGuard {
             fundingGoal == sharePrice * maxSupply,
             "AgriYield: inconsistent params"
         );
+
         require(deadline > block.timestamp, "AgriYield: invalid deadline");
         require(
             minROI < maxROI && maxROI <= 100,
@@ -182,11 +188,26 @@ contract AgriYield is ReentrancyGuard {
         require(f.status == Status.Funded, "AgriYield: not funded");
         require(f.totalInvested > 0, "No funds");
 
-        uint256 amount = f.totalInvested;
+        uint256 gross = f.totalInvested;
+        uint256 fee = _calcFee(gross);
+        uint256 payout = gross - fee;
+
         f.totalInvested = 0; // prevent re-use
         f.status = Status.PaidOut;
-        AGT.transfer(f.farmer, amount);
-        emit FundDisbursed(farmId, amount);
+
+        if (fee > 0) {
+            AGT.transfer(treasury, fee);
+            emit PlatformFeeCollected(address(this), fee, "disburse", farmId);
+        }
+        AGT.transfer(f.farmer, payout);
+
+        
+        emit FundDisbursed(farmId, payout);
+    }
+
+    function _calcFee(uint256 amount) internal view returns (uint256) {
+        if (treasury == address(0) || platformFeeBps == 0) return 0;
+        return (amount * platformFeeBps) / FEE_BASE;
     }
 
     function depositProceeds(
@@ -210,10 +231,15 @@ contract AgriYield is ReentrancyGuard {
 
     function _validateProceedsRange(uint farmId, uint256 amount) internal view {
         Farm storage f = farms[farmId];
-        uint256 minExpected = f.fundingGoal + ((f.fundingGoal * f.minROI) / 100);
-        uint256 maxExpected = f.fundingGoal + ((f.fundingGoal * f.maxROI) / 100);
+        uint256 minExpected = f.fundingGoal +
+            ((f.fundingGoal * f.minROI) / 100);
+        uint256 maxExpected = f.fundingGoal +
+            ((f.fundingGoal * f.maxROI) / 100);
 
-        require(amount >= minExpected && amount <= maxExpected, "AgriYield: ROI out of range");
+        require(
+            amount >= minExpected && amount <= maxExpected,
+            "AgriYield: ROI out of range"
+        );
     }
     /// @notice Investors claim proportional payout after settlement
     function claimInvestorPayout(uint256 farmId) external nonReentrant {
@@ -229,7 +255,16 @@ contract AgriYield is ReentrancyGuard {
 
         // Burn ERC1155 shares
         farmShares.burnShares(msg.sender, farmId, shares);
-        AGT.transfer(msg.sender, entitlement);
+
+        uint256 fee = _calcFee(entitlement);
+        uint256 payout = entitlement - fee;
+
+        if (fee > 0) {
+            AGT.transfer(treasury, fee);
+            emit PlatformFeeCollected(address(this), fee, "claim", farmId);
+        }
+
+        AGT.transfer(msg.sender, payout);
         emit InvestorClaimed(farmId, msg.sender, entitlement);
     }
     function _computeEntitlement(
@@ -301,5 +336,15 @@ contract AgriYield is ReentrancyGuard {
         Farm storage f = farms[farmId];
         minExpected = f.fundingGoal + ((f.fundingGoal * f.minROI) / 100);
         maxExpected = f.fundingGoal + ((f.fundingGoal * f.maxROI) / 100);
+    }
+
+    function setTreasury(address _treasury) external onlyAdmin {
+        require(_treasury != address(0), "zero addr");
+        treasury = _treasury;
+    }
+
+    function setPlatformFeeBps(uint256 _bps) external onlyAdmin {
+        require(_bps <= 1000, "fee too high"); // e.g. cap 10%
+        platformFeeBps = _bps;
     }
 }
