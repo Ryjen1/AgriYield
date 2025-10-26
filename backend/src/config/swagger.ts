@@ -3,6 +3,8 @@ import swaggerUi from "swagger-ui-express"
 import { Express } from "express"
 import { envConfig } from "./env"
 
+const serverUrl = process.env.API_BASE_URL || `http://localhost:${envConfig.PORT}/api`
+
 const swaggerOptions = {
   definition: {
     openapi: "3.0.0",
@@ -14,7 +16,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: process.env.API_BASE_URL,
+        url: serverUrl,
         description: "Development server",
       },
     ],

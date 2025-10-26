@@ -1,5 +1,6 @@
 import { Farm, type IFarm } from "../models/farm.model"
 import mongoose from "mongoose"
+import { Investment } from "../models/investment.model"
 
 export interface CreateFarmMetadataInput {
   farmer: string
@@ -134,5 +135,31 @@ export class FarmService {
     if (filters?.maxArea) searchQuery.totalArea = { ...searchQuery.totalArea, $lte: filters.maxArea }
 
     return await Farm.find(searchQuery).sort({ createdAt: -1 }).limit(20)
+  }
+
+  static async updateInvestmentStats(farmId: string): Promise<IFarm | null> {
+    if (!mongoose.Types.ObjectId.isValid(farmId)) return null
+  
+    const stats = await Investment.aggregate([
+      { $match: { farmId: new mongoose.Types.ObjectId(farmId) } },
+      {
+        $group: {
+          _id: "$farmId",
+          investorIds: { $addToSet: "$investorId" },
+        },
+      },
+    ])
+  
+    const totals: { investorIds: any[] } = stats[0] || { investorIds: [] }
+  
+    const farm = await Farm.findById(farmId)
+    if (!farm) return null
+  
+    // Only update investorCount; amountRaised is driven by on-chain sync
+    farm.investorCount = Array.isArray(totals.investorIds) ? totals.investorIds.length : 0
+  
+    farm.lastSyncedAt = new Date()
+    await farm.save()
+    return farm
   }
 }

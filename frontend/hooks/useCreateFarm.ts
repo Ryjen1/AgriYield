@@ -37,7 +37,7 @@ export const useCreateFarm = () => {
       }
 
       const contractAddress =
-        process.env.NEXT_PUBLIC_AGRIYIELD_CONTRACt_ADDRESS;
+        process.env.NEXT_PUBLIC_AGRIYIELD_CONTRACT_ADDRESS;
 
       if (!contractAddress) {
         toast.error("Contract address not set");

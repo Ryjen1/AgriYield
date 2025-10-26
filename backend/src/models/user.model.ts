@@ -34,11 +34,11 @@ export interface IUser extends Document {
 
 const userSchema = new Schema<IUser>(
   {
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true, match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/ },
+    email: { type: String, required: true, lowercase: true, trim: true, match: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/ },
     password: { type: String, select: false },
     magicToken: { type: String, select: false },
     name: { type: String, required: true, trim: true, minlength: 2, maxlength: 100 },
-    role: { type: String, enum: ["investor", "farmer", "admin"], required: true, index: true },
+    role: { type: String, enum: ["investor", "farmer", "admin"], required: true },
     profileImageUrl: { type: String, trim: true },
     walletAddress: { type: String, lowercase: true, match: /^0x[a-fA-F0-9]{40}$/, sparse: true },
     farmName: { type: String, trim: true },
