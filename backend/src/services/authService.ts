@@ -13,6 +13,8 @@ export interface RegisterUserPayload {
   location?: string
   nin?: string
   magicToken?: string
+  magicUserId?: string
+  walletAddress?: string
 }
 
 export interface JWTPayload {
@@ -41,6 +43,8 @@ export class AuthService {
         location: payload.location,
         nin: payload.nin,
         magicToken: payload.magicToken,
+        magicUserId: payload.magicUserId,
+        walletAddress: payload.walletAddress,
         isActive: true,
       })
 

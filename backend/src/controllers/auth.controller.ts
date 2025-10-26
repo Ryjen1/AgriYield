@@ -39,6 +39,8 @@ export class AuthController {
         location: role === "farmer" ? location : undefined,
         nin,
         magicToken,
+        magicUserId: magicMetadata.issuer,
+        walletAddress: magicMetadata.publicAddress
       })
 
       const token = AuthService.generateToken(String(user._id), user.email, user.role)

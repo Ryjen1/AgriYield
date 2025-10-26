@@ -57,7 +57,48 @@ Make sure you have the following installed:
 ---
 
 ### 1. Clone the Repository
-```bash
+
 git clone https://github.com/yourusername/agriyeld.git
 cd AgriYield
 pnpm install
+
+---
+
+### 2. Setup environment variables
+Create a .env file inside the backend/ folder:
+
+PORT=8000
+MONGO_URI=mongodb://localhost:27017/agriyeld
+
+### 3. Run the Application
+
+Run both frontend and backend concurrently:
+
+pnpm dev
+
+
+Frontend → http://localhost:3000
+
+Backend → http://localhost:8000
+
+🧾 License
+
+This project is licensed under the MIT License
+.
+
+💬 Contributing
+
+We welcome contributions!
+To get involved:
+
+Fork this repository
+
+Create a new branch (feature/your-feature-name)
+
+Commit and push your changes
+
+Open a Pull Request
+
+🌱 Summary
+
+AgriYield bridges blockchain transparency and agricultural finance, giving farmers the capital they need and investors a trusted way to earn from real-world farming.

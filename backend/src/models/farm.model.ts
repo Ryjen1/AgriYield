@@ -5,7 +5,7 @@ export type FarmType = "crop" | "livestock" | "mixed" | "poultry" | "fishery"
 export type IrrigationType = "rainfed" | "irrigated" | "supplemental"
 
 export interface IFarm extends Document {
-  blockchainFarmId: number | null
+  blockchainFarmId: number | string
   farmerAddress?: string
   farmer: string
   fundingGoal: number
@@ -19,6 +19,7 @@ export interface IFarm extends Document {
   maxROI: number
   metaCID: string
   syncedFromChain: boolean
+  farmerId: string
 
   name: string
   description: string
@@ -68,6 +69,7 @@ const farmSchema = new Schema<IFarm>(
     minROI: { type: Number },
     maxROI: { type: Number },
     metaCID: { type: String },
+    farmerId: { type: String },
     syncedFromChain: { type: Boolean, default: false },
 
     name: { type: String, required: true, trim: true, maxlength: 100 },

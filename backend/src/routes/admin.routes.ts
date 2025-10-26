@@ -2,7 +2,7 @@ import { Router } from "express"
 import { AdminController } from "../controllers/admin.controller"
 import { authenticate } from "../middleware/auth.middleware"
 import { authorize } from "../middleware/admin.middleware"
-import { FarmController } from "../controllers/farm.controller"
+// import { FarmController } from "../controllers/farm.controller"
 
 const router = Router()
 

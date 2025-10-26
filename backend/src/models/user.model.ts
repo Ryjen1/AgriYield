@@ -29,6 +29,7 @@ export interface IUser extends Document {
   lastLoginAt?: Date
   createdAt: Date
   updatedAt: Date
+  magicUserId: string
   comparePassword(password: string): Promise<boolean>
 }
 
@@ -46,8 +47,9 @@ const userSchema = new Schema<IUser>(
     location: { type: String, trim: true },
     nin: { type: String, trim: true, sparse: true },
     verified: { type: Boolean, default: false },
-    kycStatus: { type: String, enum: ["pending","approved","rejected"], default: "pending" },
+    kycStatus: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
     isActive: { type: Boolean, default: true },
+    magicUserId: { type: String },
     lastLoginAt: { type: Date }
   },
   { timestamps: true }
